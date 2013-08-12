@@ -14,6 +14,7 @@ public class app1class1 implements LibClassOne {
     }
 
     public String getString(String value) {
+
         Log.d(LOG, "--staticVoid() called w/ " + value);
         return value + "passed through app1class1";
     }
