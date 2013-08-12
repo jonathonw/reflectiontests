@@ -1,8 +1,12 @@
 package com.example.app2;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Enumeration;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +15,10 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.example.app2lib.IInterface;
+import dalvik.system.DexClassLoader;
+import dalvik.system.DexFile;
+import dalvik.system.PathClassLoader;
 
 public class MainActivity extends Activity {
     public static String LOG = MainActivity.class.getCanonicalName();
@@ -72,13 +80,102 @@ public class MainActivity extends Activity {
     }
 
     private void button2Clicked() {
-        MyRunnable2 r = new MyRunnable2();
-        r.run();
+        String path = "/sdcard/app1.jar";
+        try {
+            DexClassLoader clsLoader = new DexClassLoader(path, createTempDirectory().getAbsolutePath(), "", getClassLoader());
+
+            Class<?> cl = (Class<?>) Class.forName(
+                    "com.example.app1.SomethingPrinter", true,
+                    clsLoader);
+            Object o1 = cl.newInstance();
+
+            IInterface myObject = (IInterface) o1;
+            String info = "External SomethingPrinter returned: " + myObject.printSomething();
+
+            Class<?> myClass = o1.getClass();
+
+            info = info + "\n\nExternal Class type: " + myClass.getName() + " | " + myClass.hashCode();
+
+            Class<?>[] interfaces = myClass.getInterfaces();
+            for(Class<?> i : interfaces) {
+                info = info + "\n interface: " + i.getName() + "|" + i.hashCode();
+
+                boolean assignable = i.isAssignableFrom(myClass);
+                info += "\n    Assignable: " + (assignable ? "yes" : "no");
+            }
+
+            FooPrinter p = new FooPrinter();
+
+            Class<?> internalClass = p.getClass();
+
+            info += "\n\nInternal Class type: " + internalClass.getName() + " | " + internalClass.hashCode();
+
+            Class<?>[] internalInterfaces = internalClass.getInterfaces();
+            for(Class<?> i : internalInterfaces) {
+                info = info + "\n interface: " + i.getName() + "|" + i.hashCode();
+
+                boolean assignable = i.isAssignableFrom(myClass);
+                info += "\n    Assignable: " + (assignable ? "yes" : "no");
+            }
+
+            tv1.setText(info);
+        } catch (Exception e) {
+            Log.w(LOG, "Error opening " + path, e);
+            tv1.setText("Exception: " + e.toString());
+        }
+
+        //MyRunnable2 r = new MyRunnable2();
+        //r.run();
     }
 
     private void button3Clicked() {
-        MyRunnable3 r = new MyRunnable3();
-        r.run();
+        try {
+            Log.i(LOG, "--app2class1() called.");
+            Context mmsCtx = getApplicationContext().createPackageContext("com.example.app1",
+                    Context.CONTEXT_INCLUDE_CODE
+                            | Context.CONTEXT_IGNORE_SECURITY);
+
+            Class<?> cl = (Class<?>) Class.forName(
+                    "com.example.app1.SomethingPrinter", true,
+                    mmsCtx.getClassLoader());
+            Object o1 = cl.newInstance();
+
+            Class<?> myClass = o1.getClass();
+
+            String info = "External Class type: " + myClass.getName() + " | " + myClass.hashCode();
+
+            Class<?>[] interfaces = myClass.getInterfaces();
+            for(Class<?> i : interfaces) {
+                info = info + "\n interface: " + i.getName() + "|" + i.hashCode();
+
+                boolean assignable = i.isAssignableFrom(myClass);
+                info += "\n    Assignable: " + (assignable ? "yes" : "no");
+            }
+
+            FooPrinter p = new FooPrinter();
+
+            Class<?> internalClass = p.getClass();
+
+            info += "\n\nInternal Class type: " + internalClass.getName() + " | " + internalClass.hashCode();
+
+            Class<?>[] internalInterfaces = internalClass.getInterfaces();
+            for(Class<?> i : internalInterfaces) {
+                info = info + "\n interface: " + i.getName() + "|" + i.hashCode();
+
+                boolean assignable = i.isAssignableFrom(myClass);
+                info += "\n    Assignable: " + (assignable ? "yes" : "no");
+            }
+
+            tv1.setText(info);
+
+            //IInterface myObject = (IInterface) o1;
+            //tv1.setText(myObject.printSomething());
+
+            //MyRunnable3 r = new MyRunnable3();
+        //r.run();
+        } catch(Exception e) {
+            tv1.setText("Exception: " + e.toString());
+        }
     }
 
     public static int intMethod2(int param) {
@@ -87,6 +184,26 @@ public class MainActivity extends Activity {
 
     public int intMethod(int param) {
         return (param + 1);
+    }
+
+    public static File createTempDirectory()
+            throws IOException
+    {
+        final File temp;
+
+        temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
+
+        if(!(temp.delete()))
+        {
+            throw new IOException("Could not delete temp file: " + temp.getAbsolutePath());
+        }
+
+        if(!(temp.mkdir()))
+        {
+            throw new IOException("Could not create temp directory: " + temp.getAbsolutePath());
+        }
+
+        return (temp);
     }
 
     private void setupUI() {

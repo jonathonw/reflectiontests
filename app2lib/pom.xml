@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>reflectiontests-app2lib</artifactId>
-  <packaging>apklib</packaging>
+  <packaging>jar</packaging>
   <name>Reflection Tests App 2 Shared Library</name>
 
   <build>
@@ -51,7 +51,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
 
-      <plugin>
+      <!--<plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
@@ -70,7 +70,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
